@@ -379,7 +379,7 @@ echo "<h2>Hello World</h2>"
     <!-- Header -->
     <header>
         <div class="badge-pill">🚀 CI/CD POWERED · AWS EC2 · DOCKER</div>
-        <h1>Welcome to My PHP App!</h1>
+        <h1> Thank you to My PHP App!</h1>
         <p>Dynamic PHP, Static Design — fully CI/CD ready and cloud deployed.</p>
         <div class="header-btns">
             <a href="#" class="btn-primary-custom"><i class="fab fa-github"></i> &nbsp;View Repository</a>
