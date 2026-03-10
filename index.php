@@ -1,5 +1,5 @@
 <!-- <?php
-echo "<h1>PHP App Deployed with GitHub Actions + AWS!! Tested Successfully</h1>";
+echo "<h1>PHP App Deployed with GitHub Actions + AWS!! Tested Successfully....</h1>";
 echo "<h2>Hello World</h2>"
 ?> -->
 
@@ -11,7 +11,7 @@ echo "<h2>Hello World</h2>"
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My PHP App</title>
+    <title>PHP App</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
