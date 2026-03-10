@@ -63,5 +63,5 @@ jobs:
           # Pull latest image from ECR
           docker pull 731176811050.dkr.ecr.us-east-1.amazonaws.com/php-cicd:latest
 
-          # Run new container
+          # Run new containerr
           docker run -d -p 80:80 --name php-container 731176811050.dkr.ecr.us-east-1.amazonaws.com/php-cicd:latest
