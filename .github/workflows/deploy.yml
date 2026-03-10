@@ -11,11 +11,11 @@ jobs:
 
     steps:
 
-    # Step 1: Checkout your code
+    # Step 1: Checkout the repository
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Step 2: Configure AWS credentials for GitHub runner (for ECR push)
+    # Step 2: Configure AWS credentials on GitHub runner (for ECR push)
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
@@ -27,23 +27,22 @@ jobs:
     - name: Login to ECR
       run: |
         aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
-        | docker login --username AWS \
-        --password-stdin 731176811050.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+        | docker login --username AWS --password-stdin 731176811050.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-    # Step 4: Build Docker image locally on GitHub runner
+    # Step 4: Build Docker image tagged with the commit SHA
     - name: Build Docker Image
       run: |
-        docker build -t php-cicd .
+        docker build -t php-cicd:${{ github.sha }} .
 
-    # Step 5: Tag Docker image
+    # Step 5: Tag Docker image for ECR
     - name: Tag Image
       run: |
-        docker tag php-cicd:latest 731176811050.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/php-cicd:latest
+        docker tag php-cicd:${{ github.sha }} 731176811050.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/php-cicd:${{ github.sha }}
 
     # Step 6: Push Docker image to ECR
     - name: Push image to ECR
       run: |
-        docker push 731176811050.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/php-cicd:latest
+        docker push 731176811050.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/php-cicd:${{ github.sha }}
 
     # Step 7: SSH to EC2 and deploy the container
     - name: Deploy to EC2
@@ -53,13 +52,22 @@ jobs:
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          
-          # Stop and remove old container (if exists)
+          # Login to ECR on EC2 (IAM role handles auth)
+          aws ecr get-login-password --region us-east-1 \
+          | sudo docker login --username AWS --password-stdin 731176811050.dkr.ecr.us-east-1.amazonaws.com
+
+          # Stop and remove old container if exists
           sudo docker stop php-container || true
           sudo docker rm php-container || true
 
-          # Pull the latest image from ECR (EC2 IAM role handles auth)
-          sudo docker pull 731176811050.dkr.ecr.us-east-1.amazonaws.com/php-cicd:latest
+          # Remove old image to avoid caching
+          sudo docker image rm 731176811050.dkr.ecr.us-east-1.amazonaws.com/php-cicd:latest || true
+
+          # Pull the latest image from ECR
+          sudo docker pull 731176811050.dkr.ecr.us-east-1.amazonaws.com/php-cicd:${{ github.sha }}
 
           # Run new container
-          sudo docker run -d -p 80:80 --name php-container 731176811050.dkr.ecr.us-east-1.amazonaws.com/php-cicd:latest
+          sudo docker run -d -p 80:80 --name php-container 731176811050.dkr.ecr.us-east-1.amazonaws.com/php-cicd:${{ github.sha }}
+
+          # Optional: show container logs
+          sudo docker logs php-container
